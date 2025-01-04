@@ -8,23 +8,23 @@ from botorch.models.transforms.outcome import Standardize
 import torch
 
 from helper import get_data_from_mixing_ratio
-from image_training import train
+from model_training import train
 from typing import List
-from torch.utils.data import DataLoader
+from datasets import Dataset
 
-def iterative_loop(data_sources : List[DataLoader], validation_data : DataLoader, num_epochs=10, iterations=10, method="mixing_ratio", data="images", printout=True):
+def iterative_loop(data_sources : List[Dataset], validation_data : Dataset, num_epochs=10, iterations=10, method="mixing_ratio", data="qa", printout=True):
     
     input_X = torch.Tensor((len(data_sources))*[float(1/len(data_sources))]) # initial X
     GP_input = []
     observed_output = []
-    for i in range(iterations):
-        
+
+    for i in range(iterations):        
         if printout:
             print("mixing data...")
         if method == "mixing_ratio":
-            mixed_data = get_data_from_mixing_ratio(data_sources, input_X, base_number_of_batches=20) # each agent do some influence function process to get data
+            mixed_data = get_data_from_mixing_ratio(data_sources, input_X) # each agent do some influence function process to get data
         
-        if data=="images":
+        if data=="qa":
             acc_all, observed_performance, _ = train(mixed_data, validation_data, seed=2024, num_epochs=num_epochs, printout=printout) # observe the performance of this dataset from finetuning
         
         if printout:
